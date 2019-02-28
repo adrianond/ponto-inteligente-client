@@ -1,0 +1,430 @@
+*********************
+*  user : SYSTEM
+   senha:Nogueira1  *
+*                   *
+*                   *
+*********************
+
+** Seleciona NR_SEQ_FUNC e insere na variavel W_VL_SALARIO em tempo de execução **
+
+declare 
+W_VL_SALARIO NUMBER(10,2);
+W_NR_SEQ_FUNC NUMBER := 1;
+
+begin
+   SELECT VL_SALARIO 
+      INTO W_VL_SALARIO
+   From FUNCIONARIO 
+   WHERE NUM_SEQ_FUNC = W_NR_SEQ_FUNC;
+   
+   DBMS_OUTPUT.PUT_LINE(W_VL_SALARIO);
+end;
+
+** simple bloco de condição **
+declare 
+number1 number := 10;
+number2 number := 3;
+resultado number;
+
+begin
+  resultado := mod(number1,number2);
+  
+  if resultado = 0 then
+  dbms_output.put_line('resultado igual 0');
+  end if;
+   dbms_output.put_line('resultado: ' || resultado);
+end;
+
+-------------------------------------------------------------------------------------------------------------------------------
+** bloco repetição **
+begin
+ for contador in 1..2 loop
+     dbms_output.put_line('primeiro loop: ' || contador);
+    for i in 1..10 loop
+       if i = 10 then
+         dbms_output.put_line('voiu sair daqui!' || i);
+       end if;
+     end loop;
+  end loop;
+end;
+
+begin
+for i in 1..2 loop
+    for contador in 1..2 loop
+      DBMS_OUTPUT.PUT_LINE('LOOP!');
+        if contador = 1 then
+          DBMS_OUTPUT.PUT_LINE('SAI!');
+          exit;
+        end if;
+    end loop;
+ end loop; 
+end;
+
+-------------------------------------------------------------------------------------------------------------------------------
+** tabuada loop aninhado **
+begin
+for i in reverse 1..10 loop
+    for contador in 1..10 loop
+      DBMS_OUTPUT.PUT_LINE('Tabuada do ' || i || ':' || i || ' x ' || contador || '= ' || (i * contador));
+    end loop;
+ end loop; 
+end;
+
+-------------------------------------------------------------------------------------------------------------------------------
+** bloco while **
+declare
+flag boolean := true;
+
+begin
+  while flag loop
+       dbms_output.put_line('while');
+       flag := false;
+    end loop;
+end;
+
+------------------------------------------------------------------------------------------------------------------------------
+
+** Seleção por intervalo de datas **
+SELECT * FROM TITULO_RECEBER WHERE DT_VENCIMENTO BETWEEN '2017/02/01' AND '2018/12/25';
+SELECT * FROM TITULO_RECEBER WHERE DT_VENCIMENTO >= '2017/02/01' AND DT_VENCIMENTO <= '2018/12/25';
+SELECT * FROM TITULO_RECEBER WHERE DT_VENCIMENTO NOT BETWEEN '2017/02/01' AND '2018/12/25';
+SELECT * FROM order_details WHERE order_date BETWEEN TO_DATE ('2014/02/01', 'yyyy/mm/dd') AND TO_DATE ('2014/02/28', 'yyyy/mm/dd');
+
+-------------------------------------------------------------------------------------------------------------------------------
+** Selciona NOME_PESSOA_FISICA que contenha 'xoto'
+SELECT *FROM PESSOA_FISICA WHERE NOME_PESSOA_FISICA LIKE '%xoto%';
+** Selciona NOME_PESSOA_FISICA que contenha 'cam' e após o próximo caracter que eu não lembro seja a letra 'l''
+SELECT *FROM PESSOA_FISICA WHERE NOME_PESSOA_FISICA LIKE 'Cam_l%';
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+** União de 2 selects -> cada select deve ter a mesma quantidade de parametros e serem do mesmo tipo
+** UNION: não traz valores que sejam  repetidos nas colunas PESQUISAS das tabelas **
+** UNION ALL: traz valores que sejam  repetidos nas colunas PESQUISAS das tabelas **
+SELECT CD_PESSOA_FISICA, CD_ESTABELECIMENTO FROM PESSOA_FISICA
+ UNION 
+SELECT CD_PESSOA_FISICA, VL_SALDO FROM TITULO_RECEBER;
+
+SELECT CD_PESSOA_FISICA, CD_ESTABELECIMENTO FROM PESSOA_FISICA
+ UNION ALL
+SELECT CD_PESSOA_FISICA, VL_SALDO FROM TITULO_RECEBER;
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+** Seleciona CD_PESSOA_FISICA e VL_SALDO, excluindo os valores repetidos em VL_SALDO (clausula DISTINCT) **
+SELECT DISTINCT CD_PESSOA_FISICA, VL_SALDO FROM TITULO_RECEBER ;
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+** Cria uma tabela temporaria a partir da tabela TITULO_RECEBER **
+CREATE GLOBAL TEMPORARY TABLE TITULO_PAGAR AS(SELECT * FROM TITULO_RECEBER);
+** cria uma tabela a partir de outra tabela (neste caso com todos os campos da tabela TITULO_RECEBER) **
+CREATE TABLE TITULO_PAGAR AS (SELECT * FROM TITULO_RECEBER);
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+** seleção DS_RAZAO_SOCIAL de duas tabelas que tenham o mesmo CD_CNPJ(PRIMARY E FOREIGN KEY)
+SELECT F.DS_RAZAO_SOCIAL FROM FORNECEDOR F, PRODUTO P WHERE F.CD_CNPJ = P.CD_CNPJ
+** seleciona qual CD_CNPJ quero selecionar **
+SELECT F.DS_RAZAO_SOCIAL FROM FORNECEDOR F, PRODUTO P WHERE F.CD_CNPJ = P.CD_CNPJ AND F.CD_CNPJ = 121243;
+
+-------------------------------------------------------------------------------------------------------------------------------
+** JOIN WHERE **
+SELECT PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO FROM PESSOA_JURIDICA PJ, PEDIDOS PED WHERE PJ.CD_CNPJ = PED.CD_CNPJ;
+** JOIN 'ORACLE' **
+SELECT PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO FROM PESSOA_JURIDICA PJ JOIN PEDIDOS PED ON PJ.CD_CNPJ = PED.CD_CNPJ;
+
+** INNER JOIN - seleciona os dados das duas tabelas que codigo do CNPJ do fornecedor seja igual ao da tabela pedido(PK e FK) **
+SELECT PJ.CD_CNPJ, PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO, PED.CD_COMPRADOR FROM PESSOA_JURIDICA PJ INNER JOIN PEDIDOS PED ON PJ.CD_CNPJ = PED.CD_CNPJ;
+
+** INNER JOIN COM 3 TABELAS **
+SELECT t.*, c.nome, e.id_endereco, e.cep from CLIENTES c 
+        inner join TELEFONES t  on t.ID_CLIENTE = c.ID_CLIENTE 
+        inner join ENDERECOS e  on e.ID_CLIENTE = c.ID_CLIENTE ORDER BY c.CPF ASC;
+
+** LEFT OUTER JOIN seleciona que se relacionam entre as tabelas(PK e FK), e os dados solicitados da tabela a esquerda (FROM PESSOA_FISICA) **
+** OS dados da tabela a direita(OUTER LEFT JOIN PEDIDOS PED) retornam nulo**
+
+SELECT PJ.CD_CNPJ, PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO, PED.CD_COMPRADOR FROM PESSOA_JURIDICA PJ LEFT OUTER JOIN PEDIDOS PED ON PJ.CD_CNPJ = PED.CD_CNPJ;
+
+** LEFT OUTER JOIN COM WHERE **
+SELECT PJ.CD_CNPJ, PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO, PED.CD_COMPRADOR FROM PESSOA_JURIDICA PJ, PEDIDOS PED WHERE PJ.CD_CNPJ = PED.CD_CNPJ(+);
+
+** RIGHT OUTER JOIN seleciona que se relacionam entre as tabelas(PK e FK), e os dados solicitados da tabela a direita (OUTER RIGHT JOIN PEDIDOS PED) **
+** OS dados da tabela a esquerda(FROM PESSOA_FISICA) retornam nulo**
+
+SELECT PJ.CD_CNPJ, PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO, PED.CD_COMPRADOR, PED.CD_CNPJ FROM PESSOA_JURIDICA PJ RIGHT OUTER JOIN PEDIDOS PED ON PJ.CD_CNPJ = PED.CD_CNPJ; 
+
+** RIGHT OUTER JOIN COM WHERE **
+SELECT PJ.CD_CNPJ, PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO, PED.CD_COMPRADOR FROM PESSOA_JURIDICA PJ, PEDIDOS PED WHERE PJ.CD_CNPJ(+) = PED.CD_CNPJ;
+
+** FULL OUTER JOIN selciona os dados solitados na pesquisa das duas tabelas**
+SELECT PJ.CD_CNPJ, PJ.DS_RAZAO_SOCIAL, PED.NR_PEDIDO, PED.CD_COMPRADOR, PED.CD_CNPJ, CD_COMPRADOR FROM PESSOA_JURIDICA PJ FULL OUTER JOIN PEDIDOS PED ON PJ.CD_CNPJ = PED.CD_CNPJ;
+ 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+** SELECIONA ORDENANDO PELA COLUNA PASSADA COMO PARAMETRO (TERCEIRA COLUNA DA TABELA) ORDEM CRESCENTE **
+SELECT * FROM PESSOA_FISICA ORDER BY 3;
+SELECT * FROM PESSOA_FISICA ORDER BY NOME_PESSOA_FISICA ASC;
+** ORDEM DECRESCENTE **
+SELECT * FROM PESSOA_FISICA ORDER BY NOME_PESSOA_FISICA DESC;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+** cursor para imprimir os dados de uma tabela **
+DECLARE 
+CURSOR CURSOR_PF IS
+    SELECT * FROM PESSOA_FISICA;
+    
+ PF_CURSOR_TESTE CURSOR_PF%ROWTYPE;
+BEGIN
+   OPEN CURSOR_PF;
+   
+   LOOP
+     FETCH CURSOR_PF INTO PF_CURSOR_TESTE;
+     EXIT WHEN CURSOR_PF%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(PF_CURSOR_TESTE.cd_pessoa_fisica);
+    END LOOP;
+    
+END;    
+
+** cursor com parametro **
+declare 
+cursor pf_fisica_cursor(cd_pf varchar) is 
+    select * from PESSOA_FISICA where CD_PESSOA_FISICA = cd_pf;
+    cursor_teste pf_fisica_cursor%rowtype;
+    
+begin
+   open pf_fisica_cursor(cd_pf =>'231');
+   loop
+      fetch pf_fisica_cursor into cursor_teste;
+      exit when pf_fisica_cursor%notfound;
+      dbms_output.put_line(cursor_teste.cd_pessoa_fisica);
+  end loop;    
+end;
+
+** cursor loop forr -> MELHOR PERFORMANCE DO QUE COM FETCH **
+declare 
+cursor pf_cursor(codigo_pf_v varchar2) is 
+  select cd_pessoa_fisica, nome_pessoa_fisica from pessoa_fisica where cd_pessoa_fisica  = codigo_pf_v;
+  
+  begin
+    for resultado in pf_cursor(codigo_pf_v => '1126') loop
+    dbms_output.put_line(resultado.cd_pessoa_fisica || '->' || resultado.nome_pessoa_fisica);
+    exit  when resultado.cd_pessoa_fisica = '1127';
+    end loop;
+  end;
+  
+** CURSOR com loop for interno** 
+  begin
+     for resultado in(select cd_pessoa_fisica, nome_pessoa_fisica, ie_sexo from pessoa_fisica where mr_cpf = '89955234892') loop
+       dbms_output.put_line(resultado.nome_pessoa_fisica || resultado.ie_sexo);
+       exit  when resultado.cd_pessoa_fisica = '1127';
+    end loop;
+  end;
+  
+** cursor para realizar update dada uma condição **
+begin
+     for resultado in(select cd_pessoa_fisica, nome_pessoa_fisica, ie_sexo from pessoa_fisica) loop
+        dbms_output.put_line(resultado.nome_pessoa_fisica || resultado.ie_sexo);
+          if(resultado.cd_pessoa_fisica = '1127') then
+            update PESSOA_FISICA set nome_pessoa_fisica = 'Maria Pexoto Silva' where cd_pessoa_fisica = '1127';
+            exit;
+          end if;
+    end loop;
+   for resultado in(select cd_pessoa_fisica, nome_pessoa_fisica from pessoa_fisica where cd_pessoa_fisica = '1127') loop
+        dbms_output.put_line('novo nome: ' || resultado.nome_pessoa_fisica);
+          exit when resultado.cd_pessoa_fisica = '1127';
+    end loop;
+end; 
+
+** CURSOR PARA INSERT **
+begin
+   for cursorSelect in(Select * from PESSOA_FISICA where CD_PESSOA_FISICA = '1125') loop
+      insert into TITULO_PAGAR (NR_TITULO, CD_PESSOA_FISICA, VL_TITULO, VL_SALDO, CD_CNPJ, DT_VENCIMENTO)
+      values(9877, cursorSelect.CD_PESSOA_FISICA, 34.00, 900.00, 09, '01-JAN-2020');
+   end loop;
+ end; 
+ 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+** FUNÇÕES **
+   ** FUNÇÃO QUE RECEBE O CÓDIGO DA PESSOA FISICA POR PARAMETRO E RETORNA O NOME DA PESSOA FISICA **
+    create or replace function obter_nome_pessoa_fisica(cd_pessoa_fisica_p varchar2)
+    return varchar2 is 
+         nome_pessoa_fisica_w varchar2(100);
+   
+begin
+   if (cd_pessoa_fisica_p is not null) then
+       begin
+          select nome_pessoa_fisica 
+            into nome_pessoa_fisica_w
+          from PESSOA_FISICA where CD_PESSOA_FISICA = cd_pessoa_fisica_p;
+       end;
+    end if;
+    return nome_pessoa_fisica_w;
+end;
+
+** REALIZA UM SELECT DE TODOS OS DADOS DA TABELA DE TITULOS A RECEBER UTILIZANDO A FUNÇÃO QUE RETORNA O NOME DA PESSOA FISICA PARA REALIZAR ESSE SELECT **
+
+select t.*,obter_nome_pessoa_fisica(t.CD_PESSOA_FISICA) FROM TITULO_RECEBER t 
+  WHERE t.CD_PESSOA_FISICA = '231';  
+
+** funções com 2 parametros **
+create or replace function obter_cnpj_cpf(cd_pessoa_fisica_p varchar2, cd_cnpj_p varchar2)
+   return varchar2 is ds_retorno_w varchar(100);
+   
+   begin
+   ds_retorno_w := '';
+     if (cd_pessoa_fisica_p is not null) then
+       begin
+          select NOME_PESSOA_FISICA
+            into ds_retorno_w
+           from PESSOA_FISICA where cd_pessoa_fisica  =  cd_pessoa_fisica_p;
+       end;
+       elsif (cd_cnpj_p is not null)then
+       begin
+        select ds_razao_social
+            into ds_retorno_w
+           from PESSOA_JURIDICA where cd_cnpj  =  cd_cnpj_p;
+       end;
+     end if;
+     return ds_retorno_w;
+   end;
+   
+select t.*,  obter_cnpj_cpf(cd_pessoa_fisica,null)from TITULO_RECEBER t;
+select p.*,  obter_cnpj_cpf(null,cd_cnpj)from pedidos p; 
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** FUNÇÕES DE CARACTER **
+   ** USANDO BLOCO DE CÓDIGO **
+declare 
+  wnome1 varchar2(100) default 'ENGENHEIRO DE SOFTWARE';
+  wnome2 varchar2(100) default 'DesenvolvedoR';
+  wnome3 varchar2(100) default 'Gerente de Projetos';
+  wnome4 varchar2(100) default 'Analista de Sistemas';
+  
+begin
+  wnome1 := initcap(wnome1);
+  wnome2 := lower(wnome2);
+  wnome3 := upper(wnome3);
+  wnome4 := length(wnome4);
+  
+  dbms_output.put_line(wnome1);
+  dbms_output.put_line(wnome2);
+  dbms_output.put_line(wnome3);
+  dbms_output.put_line('Número de Caracteres: '||wnome4);
+end;
+
+** USANDO TABELA LÓGICA dual **
+select rtrim('    TESTE teste    ') from dual;
+select ltrim('    TESTE teste    ') from dual;
+select initcap('TESTE teste Test') from dual;
+select lower('TESTE teste Test') from dual;
+select upper('TESTE teste Test') from dual; 
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** FUNÇOES NUMERIAS **
+declare 
+  wres number;
+  
+begin
+  wres := mod(10,2);
+  dbms_output.put_line('O resto da divisão de 10 e 2 = '||wres);
+  
+  wres := sqrt(64);
+  dbms_output.put_line('Raiz Quadrada de 64: '||wres);
+  
+  wres := power(8,2);
+  dbms_output.put_line(wres);
+  
+  wres := ceil(10.2);
+  dbms_output.put_line(wres);
+
+  wres := trunc(125.6);
+  dbms_output.put_line('TRUNC '||wres);
+  
+end;
+
+** USANDO TABELA LÓGICA dual **
+select sum(vl_titulo) total from titulo_receber;
+select max(vl_titulo) total from titulo_receber;
+select min(vl_titulo) total from titulo_receber;
+
+select *  from titulo_receber;
+
+select power(8,5) from dual;
+select sqrt(64) from dual;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** GROUP BY **
+  ** SELECIONA A SOMA DOS VALORES DO TITULO DE CADA PESSOA FISICA **
+SELECT CD_PESSOA_FISICA, SUM(VL_TITULO) VALOR FROM TITULO_RECEBER GROUP BY CD_PESSOA_FISICA;
+** SELECIONA SOMA DOS VALORES DO TITULO DE UMA PESSOA ESPECIFICA **
+SELECT SUM(VL_TITULO) VALOR FROM TITULO_RECEBER WHERE CD_PESSOA_FISICA = '1125';
+**SELECIONA A SOMA DA PESSOA QUE FOR MAIOR QUE 1000 **
+SELECT CD_PESSOA_FISICA, SUM(VL_TITULO) VALOR FROM TITULO_RECEBER GROUP BY CD_PESSOA_FISICA HAVING SUM(VL_TITULO) > 1000;
+
+** QTD DE TITULO DE CADA PESSOA FISICA **
+SELECT CD_PESSOA_FISICA, COUNT(NR_TITULO) TITULO FROM TITULO_RECEBER GROUP BY CD_PESSOA_FISICA;
+** QTD DE TITULO DE UMA PESSOA ESPECIFICA **
+SELECT  COUNT(NR_TITULO) TITULO FROM TITULO_RECEBER WHERE  CD_PESSOA_FISICA = '1125';
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** SUBQUERY QUE RETORNA A SOMA EFETUA DO VALOR DO TITULO A RECEBER DOS cd_pessoa_fisica DA TABELA TITULO_RECEBER **
+   ** PRIMEIRO SELECT RETORNA O cd_pessoa_fisica E A SUBQUERY RETORNA A SOMA **
+
+select distinct tr.cd_pessoa_fisica, subquery1.total_titulo 
+    from titulo_receber tr,(select cd_pessoa_fisica, sum(vl_titulo)total_titulo from TITULO_RECEBER
+    GROUP BY  cd_pessoa_fisica)subquery1 where tr.CD_PESSOA_FISICA  = subquery1.cd_pessoa_fisica;
+    
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** cria uma sequence para tabela titulo_receber **
+create sequence titulo_receber_seq increment by 1 start with 1 maxvalue 999999 minvalue 1;
+
+insert into TITULO_RECEBER values(titulo_receber_seq.nextval, '1125', 49.00, 78.88, 9, null);
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------  
+
+** CRIAR INDEX **
+create unique index titulo_receber_pk_index on titulo_receber(cd_pessoa_fisica asc, nr_titulo asc);
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** CRIAR VIEW SIMPLES - CONSULTA APENAS 1 TABELA **
+CREATE VIEW LISTAR_PF_VIEW 
+   AS SELECT CD_PESSOA_FISICA, NOME_PESSOA_FISICA
+FROM PESSOA_FISICA;   
+   
+SELECT *FROM LISTAR_PF_VIEW;
+
+** CRIAR VIEW COMPOSTA - CONSULTA DUAS OU MAIS TABELAS **
+CREATE VIEW PEDIDOS_PJ_VIEW 
+  AS SELECT PJ.CD_CNPJ, PJ.DS_RAZAO_SOCIAL, P.NR_PEDIDO
+  FROM PESSOA_JURIDICA PJ INNER JOIN PEDIDOS P 
+  ON PJ.CD_CNPJ = P.CD_CNPJ;
+  
+SELECT NR_PEDIDO FROM PEDIDOS_PJ_VIEW WHERE CD_CNPJ = '73367617000113'; 
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+** CRIA PROCEDURE QUE REALIZA UM UPDATE USANDO CURSOR **
+create or replace PROCEDURE SELECIONAR_PESSOA_FISICA AS
+
+BEGIN
+  FOR CURSOR_PESSOA_FISICA IN(SELECT * FROM PESSOA_FISICA WHERE CD_PESSOA_FISICA = '1125') LOOP
+   update PESSOA_FISICA set nome_pessoa_fisica = 'CLEBER SILVA' where CD_PESSOA_FISICA = CURSOR_PESSOA_FISICA.cd_pessoa_fisica; 
+  END LOOP;
+END SELECIONAR_PESSOA_FISICA;
+
+** EXECUTAR A PROCEDURE **
+execute SELECIONAR_PESSOA_FISICA;
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+** converte uma string em date **
+select TO_DATE('01092001', 'dd/MM/yy') from dual;
+
+** obtém a date atual **
+select sysdate from dual;
